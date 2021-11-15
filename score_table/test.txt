@@ -1,0 +1,6 @@
+学号,姓名,班级,年龄
+,,,岁
+id,name,class,age
+1,lisi,2020,10
+2,wangwu,2020,11
+3,xiaofang,2021,12

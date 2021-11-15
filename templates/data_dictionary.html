@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/CSS/layui/css/layui.css"   media="all">
+    <link rel="stylesheet" href="../static/CSS/prompt_box.css"   media="all">
+  <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">智能数据库系统</div>
+    <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+          <!-- 移动端显示 -->
+          <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
+            <i class="layui-icon layui-icon-spread-left"></i>
+          </li>
+
+          <li class="layui-nav-item layui-hide-xs"><a href="index">导入</a></li>
+          <li class="layui-nav-item layui-hide-xs"><a href="table_list">数据字典</a></li>
+          <li class="layui-nav-item layui-hide-xs"><a href="tolook">可视化</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                <a href="javascript:;">
+                  <img src="//tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203b03cweg.jpg" class="layui-nav-img">
+                  tester
+                </a>
+                <dl class="layui-nav-child">
+                  <dd><a href="">Your Profile</a></dd>
+                  <dd><a href="">Settings</a></dd>
+                  <dd><a href="">Sign out</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+                <a href="javascript:;">
+                  <i class="layui-icon layui-icon-more-vertical"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item"><a href="/index">导入数据</a></li>
+                <li class="layui-nav-item" style="background: #007d65"><a href="/table_list">已创建表</a></li>
+                <li class="layui-nav-item"><a href="file_list">已上传文件</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div id="container">
+            <div id="box">
+                <strong id="close">关闭</strong>
+                <span  id="word">英文名:<br><br><input type="text" id="key_english" value=""></span><br>
+                <span id="word">中文名:<br><br><input type="text" id="key_china" value=""></span><br>
+                <span id="word">字段类型:<br><br><input type="text" id="key_type" value=""></span><br>
+                <span id="word">字段长度:<br><br><input type="text" id="key_long" value=""></span><br>
+                <span id="word">字段缺省值:<br><br><input type="text" id="key_null" value=""></span><br>
+                <span id="word">单位:<br><br><input type="text" id="key_unit" value=""></span><br>
+                <input type="button" value="修改" id="login">
+            </div>
+        </div>
+        <div style="padding: 15px;">
+            <table class="layui-table" id="idTest" lay-data="{width: 1300, height:690, url:'/get_look_dictionary',where:{table_name:'{{ table_name }}',database_name:'{{ database_name }}'}, page:false, id:'idTest'}" lay-filter="demo">
+                <thead>
+                <tr>
+                    <th lay-data="{field:'key_english', width:220,  fixed: true}">英文名</th>
+                    <th lay-data="{field:'key_china', width:220}">中文名</th>
+                    <th lay-data="{field:'key_type', width:180}">字段类型</th>
+                    <th lay-data="{field:'key_long', width:180}">字段长度</th>
+                    <th lay-data="{field:'key_null', width:180}">字段缺省值</th>
+                    <th lay-data="{field:'key_unit', width:180}">单位</th>
+                    <th lay-data="{fixed: 'right', width:220, align:'center', toolbar: '#barDemo'}"></th>
+                </tr>
+                </thead>
+            </table>
+            <script type="text/html" id="barDemo">
+                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="add">添加</a>
+                <a class="layui-btn layui-btn-xs" lay-event="dictionary">修改</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+    </div>
+
+    <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    寒蝉鸣泣之时
+    </div>
+</div>
+<script src="../static/CSS/layui/layui.js">
+</script>
+<script src="../static/js/jquery-1.7.2.min.js">
+</script>
+<script>
+    function my$(id) {
+        return document.getElementById(id);
+    }
+
+    // 获取鼠标在页面的位置，处理浏览器兼容性
+    function getPage(e) {
+        var pageX = e.pageX || e.clientX + getScroll().scrollLeft;
+        var pageY = e.pageY || e.clientY + getScroll().scrollTop;
+        return {
+            pageX: pageX,
+            pageY: pageY
+        }
+    }
+</script>
+<script>
+//JS
+    var key_english=document.getElementById("key_english")
+    var key_china=document.getElementById("key_china")
+    var key_type=document.getElementById("key_type")
+    var key_long=document.getElementById("key_long")
+    var key_null=document.getElementById("key_null")
+    var key_unit=document.getElementById("key_unit")
+    var box = my$('box');
+    var close = my$('close');
+    var ok_dictionary=my$('login')
+    var key_english_0
+    var key_unit_0
+    ok_dictionary.onclick = function () {
+        if(ok_dictionary.value=="修改"){
+            $.ajax({
+                type: "GET",
+                url: "/update_dictonary",
+                data: {key_english:key_english.value, key_china:key_china.value,key_type:key_type.value
+                    , key_long:key_long.value,key_null:key_null.value,key_unit:key_unit.value
+                    ,table_name:'{{ table_name }}',database_name:'{{ database_name }}'
+                    ,key_english_0:key_english_0,key_unit_0:key_unit_0},
+                dataType: "json",
+                success: function(data){
+                    if(data.flag==1){
+                        alert("修改成功，请刷新页面")
+                    }else{
+                        alert("修改失败")
+                    }
+                }
+            });
+        }else if(ok_dictionary.value=="添加"){
+            $.ajax({
+                type: "GET",
+                url: "/add_dictonary",
+                data: {key_english:key_english.value, key_china:key_china.value,key_type:key_type.value
+                    , key_long:key_long.value,key_null:key_null.value,key_unit:key_unit.value
+                    ,table_name:'{{ table_name }}',database_name:'{{ database_name }}'},
+                dataType: "json",
+                success: function(data){
+                    if(data.flag==1){
+                        alert("添加成功，请刷新页面")
+                    }else{
+                        alert("添加失败")
+                    }
+                }
+            });
+        }
+    }
+    close.onclick = function () {
+        box.style.display = 'none';
+        // 关闭后恢复box到原来的默认位置
+        box.style.top = '200px';
+        box.style.left = '';
+    }
+    box.onmousedown = function (e) {
+        e = e || window.event;
+        // 盒子的位置
+        var x = getPage(e).pageX - box.offsetLeft;
+        var y = getPage(e).pageY - box.offsetTop;
+        document.onmousemove = function (e) {
+            e = e || window.event;
+            box.style.left = getPage(e).pageX - x + 'px';
+            box.style.top = getPage(e).pageY - y + 'px';
+        }
+    }
+    document.onmouseup = function () {
+        document.onmousemove = null;
+    }
+    var table = layui.table;
+    layui.use(['element', 'layer', 'util'], function(){
+        var element = layui.element
+        ,layer = layui.layer
+        ,util = layui.util
+        ,$ = layui.$;
+
+        //头部事件
+        util.event('lay-header-event', {
+        //左侧菜单事件
+            menuLeft: function(othis){
+                layer.msg('展开左侧菜单的操作', {icon: 0});
+            }
+            ,menuRight: function(){
+                layer.open({
+                    type: 1
+                    ,content: '<div style="padding: 15px;">处理右侧面板的操作</div>'
+                    ,area: ['260px', '100%']
+                    ,offset: 'rt' //右上角
+                    ,anim: 5
+                    ,shadeClose: true
+
+                });
+            }
+        });
+
+    });
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'add'){
+            key_english.value=""
+            key_china.value=""
+            key_type.value=""
+            key_long.value=""
+            key_null.value=""
+            key_unit.value=""
+            key_english_0=""
+            key_unit_0=""
+            ok_dictionary.value="添加"
+            box.style.display = 'flex';
+        } else if(obj.event === 'del'){
+            layer.confirm('真的删除行么', function(index){
+                $.ajax({
+                    type: "GET",
+                    url: "/delete_dictonary",
+                    data: {key_english:data.key_english,table_name:'{{ table_name }}',database_name:'{{ database_name }}'},
+                    dataType: "json",
+                    success: function(data){
+                        if(data.flag==1){
+                            alert("删除成功，请刷新页面")
+                        }else{
+                            alert("删除失败")
+                        }
+                    }
+                });
+            });
+        } else if(obj.event === 'dictionary'){
+            key_english.value=data.key_english
+            key_china.value=data.key_china
+            key_type.value=data.key_type
+            key_long.value=data.key_long
+            key_null.value=data.key_null
+            key_unit.value=data.key_unit
+            key_english_0=data.key_english
+            key_unit_0=data.key_unit
+            ok_dictionary.value="修改"
+            box.style.display = 'flex';
+        }
+    });
+
+</script>
+</body>
+</html>
