@@ -70,9 +70,7 @@
                 </thead>
             </table>
             <script type="text/html" id="barDemo">
-                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
-                <a class="layui-btn layui-btn-xs" lay-event="dictionary">数据字典</a>
-                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+                <a class="layui-btn layui-btn-xs" lay-event="dictionary">数据可视化</a>
             </script>
         </div>
     </div>
@@ -114,27 +112,8 @@
     var table = layui.table;
     table.on('tool(demo)', function(obj){
         var data = obj.data;
-        if(obj.event === 'detail'){
-           window.location.href="/table_details" +
-                "?table_name="+data.table_name+"&database_name="+data.database_name;
-        } else if(obj.event === 'del'){
-            layer.confirm('真的删除行么', function(index){
-                 $.ajax({
-                    type: "GET",
-                    url: "/delete_table",
-                    data: {table_name:data.table_name,database_name:data.database_name},
-                    dataType: "json",
-                    success: function(data){
-                        if(data.flag==1){
-                            alert("删除成功，请刷新页面")
-                        }else{
-                            alert("删除失败")
-                        }
-                    }
-                });
-            });
-        } else if(obj.event === 'dictionary'){
-            window.location.href="/look_dictionary" +
+        if(obj.event === 'dictionary'){
+            window.location.href="/to_look" +
                 "?table_name="+data.table_name+"&database_name="+data.database_name;
             // layer.alert('编辑行：<br>'+ JSON.stringify(data))
         }

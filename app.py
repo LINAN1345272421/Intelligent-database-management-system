@@ -34,6 +34,9 @@ def hello_world_show_4():
 @app.route('/file_list')
 def hello_world_show_5():
     return render_template("file_list.html")
+@app.route('/look_list')
+def hello_world_show_6():
+    return render_template("look_list.html")
 #此部分为URL跳转配置
 
 
@@ -389,6 +392,12 @@ def delete_file():
     return jsonify({"flag":flag})
 
 ######表与文件部分
+
+
+#数据可视化
+@app.route('/to_look')
+def tolook():
+    return render_template("tolook.html")
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5000,debug=True)

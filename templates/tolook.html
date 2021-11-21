@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Layui</title>
-  <meta name="renderer" content="webkit">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link rel="stylesheet" href="../static/CSS/layui/css/layui.css"   media="all">
-  <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/CSS/layui/css/layui.css"   media="all">
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+    <script src='https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'></script>
+    <!-- <script src="../../echarts/dist/echarts.js"></script> -->
+    <script src='../static/js/echarts-wordcloud.js'></script>
+    <script src="../static/js/echarts.min.js"></script>
 </head>
 <body>
 <div class="layui-layout layui-layout-admin">
@@ -57,23 +61,8 @@
 
     <div class="layui-body">
         <!-- 内容主体区域 -->
-        <div style="padding: 15px;">
-            <table class="layui-table" id="idTest" lay-data="{width: 1300, height:690, url:'/get_table_list',where:{action:'findSendArticle'}, page:false, id:'idTest'}" lay-filter="demo">
-                <thead>
-                <tr>
-                    <th lay-data="{field:'table_name', width:240,  fixed: true}">表名</th>
-                    <th lay-data="{field:'database_name', width:240}">数据库</th>
-                    <th lay-data="{field:'rows_num', width:180}">行数</th>
-                    <th lay-data="{field:'create_time', width:240}">创建时间</th>
-                    <th lay-data="{fixed: 'right', width:220, align:'center', toolbar: '#barDemo'}"></th>
-                </tr>
-                </thead>
-            </table>
-            <script type="text/html" id="barDemo">
-                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
-                <a class="layui-btn layui-btn-xs" lay-event="dictionary">数据字典</a>
-                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-            </script>
+        <div id="look" style="width: 1300px;height:700px">
+
         </div>
     </div>
 
@@ -111,35 +100,78 @@
             }
         });
     });
-    var table = layui.table;
-    table.on('tool(demo)', function(obj){
-        var data = obj.data;
-        if(obj.event === 'detail'){
-           window.location.href="/table_details" +
-                "?table_name="+data.table_name+"&database_name="+data.database_name;
-        } else if(obj.event === 'del'){
-            layer.confirm('真的删除行么', function(index){
-                 $.ajax({
-                    type: "GET",
-                    url: "/delete_table",
-                    data: {table_name:data.table_name,database_name:data.database_name},
-                    dataType: "json",
-                    success: function(data){
-                        if(data.flag==1){
-                            alert("删除成功，请刷新页面")
-                        }else{
-                            alert("删除失败")
-                        }
-                    }
-                });
-            });
-        } else if(obj.event === 'dictionary'){
-            window.location.href="/look_dictionary" +
-                "?table_name="+data.table_name+"&database_name="+data.database_name;
-            // layer.alert('编辑行：<br>'+ JSON.stringify(data))
-        }
-    });
+//echarts
+    var chartDom = document.getElementById('look');
+    var myChart = echarts.init(chartDom);
+    var option;
 
+    option = {
+        title: {
+            text: 'Basic Graph'
+        },
+        tooltip: {},
+        animationDurationUpdate: 1500,
+        animationEasingUpdate: 'quinticInOut',
+        series: [
+            {
+                type: 'graph',
+                layout: 'none',
+                symbolSize: 50,
+                roam: true,
+                label: {
+                show: true
+                },
+                edgeSymbol: ['circle', 'arrow'],
+                edgeSymbolSize: [4, 10],
+                edgeLabel: {
+                fontSize: 20
+                },
+                data: [
+                    {
+                        name: 'test',
+                        x: 300,
+                        y: 300
+                    },
+                    {
+                        name: 'test_1',
+                        x: 550,
+                        y: 300
+                    },
+                    {
+                        name: 'test_2',
+                        x: 550,
+                        y: 100
+                    },
+                    {
+                        name: 'test_3',
+                        x: 550,
+                        y: 500
+                    }
+                ],
+                // links: [],
+                links: [
+                    {
+                        source: 'test',
+                        target: 'test_1'
+                    },
+                    {
+                        source: 'test',
+                        target: 'test_2'
+                    },
+                    {
+                        source: 'test',
+                        target: 'test_3'
+                    }
+                ],
+                lineStyle: {
+                        opacity: 0.9,
+                        width: 2,
+                        curveness: 0
+                }
+            }
+        ]
+    };
+    option && myChart.setOption(option);
 </script>
 </body>
 </html>
