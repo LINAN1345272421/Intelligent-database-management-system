@@ -52,7 +52,8 @@
             <ul class="layui-nav layui-nav-tree" lay-filter="test">
                 <li class="layui-nav-item"><a href="/index">导入数据</a></li>
                 <li class="layui-nav-item" style="background: #007d65"><a href="/table_list">已创建表</a></li>
-                <li class="layui-nav-item"><a href="file_list">已上传文件</a></li>
+                <li class="layui-nav-item"><a href="/file_list">已上传文件</a></li>
+                <li class="layui-nav-item"><a href="/data_clean">维度清洗</a></li>
             </ul>
         </div>
     </div>
@@ -75,12 +76,12 @@
             <table class="layui-table" id="idTest" lay-data="{width: 1300, height:690, url:'/get_look_dictionary',where:{table_name:'{{ table_name }}',database_name:'{{ database_name }}'}, page:false, id:'idTest'}" lay-filter="demo">
                 <thead>
                 <tr>
-                    <th lay-data="{field:'key_english', width:220,  fixed: true}">英文名</th>
-                    <th lay-data="{field:'key_china', width:220}">中文名</th>
+                    <th lay-data="{field:'key_english', width:140,  fixed: true}">英文名</th>
+                    <th lay-data="{field:'key_china', width:140}">中文名</th>
                     <th lay-data="{field:'key_type', width:180}">字段类型</th>
                     <th lay-data="{field:'key_long', width:180}">字段长度</th>
                     <th lay-data="{field:'key_null', width:180}">字段缺省值</th>
-                    <th lay-data="{field:'key_unit', width:180}">单位</th>
+                    <th lay-data="{field:'key_unit', width:120}">单位</th>
                     <th lay-data="{fixed: 'right', width:220, align:'center', toolbar: '#barDemo'}"></th>
                 </tr>
                 </thead>

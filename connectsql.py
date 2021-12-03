@@ -16,6 +16,8 @@ from flask import json
 import nltk
 from nltk.corpus import brown
 
+import fileroot
+
 #数据库的连接查询
 def get_conn_mysql():
     """
@@ -132,8 +134,6 @@ def read_example(path,china_row,english_row,unit_row,type_flag):
         print("写入错误")
     close_conn_mysql(cursor, conn)
     return flag
-
-
 # 读取csv文件
 def read_csv(path,china_row,english_row,unit_row,type_flag):
     conn, cursor=get_conn_mysql()
@@ -163,13 +163,14 @@ def read_csv(path,china_row,english_row,unit_row,type_flag):
         key=key+","+i
     key=key[1:]
     if (type_flag == "0"):
-        delete_sql = "drop table " + table_name
-        try:
-            cursor.execute(delete_sql)
-        except:
-            traceback.print_exc()
-            flag = 0
-            print("表删除失败")
+        if(fileroot.find_filedata_filename(table_name)!=()):
+            delete_sql = "drop table " + table_name
+            try:
+                cursor.execute(delete_sql)
+            except:
+                traceback.print_exc()
+                flag = 0
+                print("表删除失败")
     # 建表及插入数据
     sql = "CREATE TABLE IF NOT EXISTS " + table_name + " ("
     # 循环加入key值
@@ -287,6 +288,7 @@ def read_excel(path):
     #     traceback.print_exc()
     #     print("写入错误")
     close_conn_mysql(cursor, conn)
+
 
 if __name__ == '__main__':
     pass

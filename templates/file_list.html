@@ -51,6 +51,7 @@
             <li class="layui-nav-item" ><a href="index">导入数据</a></li>
             <li class="layui-nav-item"><a href="table_list">已创建表</a></li>
             <li class="layui-nav-item" style="background: #007d65"><a href="file_list">已上传文件</a></li>
+            <li class="layui-nav-item"><a href="/data_clean">维度清洗</a></li>
         </ul>
     </div>
     </div>
@@ -60,12 +61,12 @@
             <table class="layui-table" id="idTest" lay-data="{width: 1300, height:690, url:'/file_state_list',where:{action:'findSendArticle'}, page:false, id:'idTest'}" lay-filter="demo">
                 <thead>
                 <tr>
-                    <th lay-data="{field:'file_name', width:240,  fixed: true}">文件名</th>
-                    <th lay-data="{field:'file_type', width:240}">文件类型</th>
-                    <th lay-data="{field:'file_time', width:180}">创建时间</th>
-                    <th lay-data="{field:'file_size', width:240}">文件大小</th>
-                    <th lay-data="{field:'file_state', width:240}">文件状态</th>
-                    <th lay-data="{field:'user_id', width:240}">上传人</th>
+                    <th lay-data="{field:'file_name', width:150,  fixed: true}">文件名</th>
+                    <th lay-data="{field:'file_type', width:125}">文件类型</th>
+                    <th lay-data="{field:'file_time', width:250}">创建时间</th>
+                    <th lay-data="{field:'file_size', width:150}">文件大小</th>
+                    <th lay-data="{field:'file_state', width:150}">文件状态</th>
+                    <th lay-data="{field:'user_id', width:140}">上传人</th>
                     <th lay-data="{fixed: 'right', width:180, align:'center', toolbar: '#barDemo'}"></th>
                 </tr>
                 </thead>

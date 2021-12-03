@@ -15,6 +15,9 @@ import nltk
 from nltk.corpus import brown
 
 #数据库的连接与查询
+import fileroot
+
+
 def get_conn_mysql():
     """
     :return: 连接，游标192.168.1.102
@@ -45,7 +48,16 @@ def query_mysql(sql,*args):
     res=cursor.fetchall()
     close_conn_mysql(conn,cursor)
     return res
-
+def pymysql_conn():
+    conn = pymysql.connect(
+        host="127.0.0.1",  # 需要连接的数据库的ip
+        port=3306,
+        user="root",  # 数据库用户名
+        password="123456",  # 数据库密码
+        database="bigwork_data"
+    )
+    cursor = conn.cursor()
+    return conn, cursor
 
 #获取表的数据字典
 def get_dictionary(name_table,database_name):
@@ -78,6 +90,30 @@ def get_table_details_key(name_table,database_name):
           "where table_name='" + name_table + "' and table_schema='" + database_name + "'"
     res = query_mysql(sql)
     return res
+#获取快速分析的key
+def get_table_clean(name_table,database_name):
+    #pandas读取数据库
+    conn, cursor=pymysql_conn()
+    qu_sql = "SELECT * FROM "+name_table
+    df = pd.read_sql_query(qu_sql, conn)
+    #获取key值（china，english）
+    keys_or=get_table_details_key(name_table,database_name)
+    #获取keyEnglish
+    keys=[]
+    for i in keys_or:
+        keys.append(i[0])
+    #转换数据类型
+    print("数据快速分析"+name_table)
+    for i in keys:
+        try:
+            df[i] = df[i].astype(float)
+        except:
+            print("数据类型不符合")
+    df_describe=df.describe()
+    print(df_describe)
+    return df_describe.keys(),df_describe.index,df_describe.values
+    pass
+
 #获取表的信息
 def get_table_data():
     #表名，数据库，行数，创建实际
@@ -166,4 +202,5 @@ def delete_table(table_name):
 
 if __name__ == '__main__':
     # update_dictionary("test_dictionary","bigwork_data","标号","int","id","11","0","0","id","1")
+    get_table_clean("test_dictionary","bigwork_data")
     pass

@@ -37,19 +37,23 @@ def hello_world_show_5():
 @app.route('/look_list')
 def hello_world_show_6():
     return render_template("look_list.html")
+@app.route('/data_clean')
+def hello_world_show7():
+    return render_template("data_clean.html")
 #此部分为URL跳转配置
 
 
 
 
 ######文件导入导出
-china_row_0=0
-english_row_0=0
-unit_row_0=0
+china_row_0=0#中文名 行
+english_row_0=0#英文名 行
+unit_row_0=0#单位 行
 type_0=0#1追加，0覆盖
 #格式设置
 @app.route("/set_rows")
 def set_rows():
+    #使用全局变量赋值
     global china_row_0
     china_row_0=request.values.get("china_row")
     global english_row_0
@@ -68,7 +72,6 @@ def hum_convert(value):
             return "%.2f%s" % (value, units[i])
         value = value / size
 #文件导入
-#已导入文件查询
 #json格式
 # {
 #   "code": 0,
@@ -85,13 +88,13 @@ def import_data():
     #返回码含义：0上传失败，1上传成功，2上传类型不符，但是还会上传，传到test_data,3文件名重复已覆盖，4文件名重复以追加5填写格式
     #获取文件
     the_file = request.files.get("file")
-    # 判断文件类型
+    #获取文件基本信息
     file_type=the_file.filename.split(".")[1]
     file_name=the_file.filename.split(".")[0]
     file_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     file_data = fileroot.find_filedata_filename(file_name)
     #判断格式是否设置
-    if(china_row_0==english_row_0==unit_row_0==0):#判断文件格式是否填写
+    if(china_row_0==english_row_0==unit_row_0==0):
         return jsonify({"code": 5, "msg": "", "data": ""})
     else:#填写后根据文件类型上传
         #使用全局变量
@@ -185,7 +188,6 @@ def export():
     else:
         print(file_data)
         return send_from_directory(r"test_data", filename=file_data[0] + "." + file_data[2], as_attachment=True)
-
 ######文件导入导出
 
 
@@ -199,7 +201,7 @@ def get_table_list():
     data_re=[]
     for table_name,database_name,rows,data_time in data:
         data_time_str=data_time.strftime("%Y-%m-%d %H:%M:%S")
-        data_re.append({"table_name":table_name,"database_name":database_name,"rows_num":rows,"create_time":data_time_str})
+        data_re.append({"table_name":table_name,"database_name":database_name,"rows_num":rows+1,"create_time":data_time_str})
     count= len(data_re)
     print("已导入数据：")
     print(data_re)
@@ -243,10 +245,13 @@ def get_table_details_key():
     english_china=[]
     #调用获取表KEY的函数
     english_china=dictionary.get_table_details_key(table_name,database_name)
+    english_china_clean=[]
+    for i in english_china:
+        english_china_clean.append((i[0],i[1].split(",")[0]))#去掉逗号
     #返回JSON
     print("表key值：(table_name="+table_name+",database_name="+database_name+")")
     print(english_china)
-    return jsonify({"data": english_china,"len":len(english_china)})
+    return jsonify({"data": english_china_clean,"len":len(english_china)})
     pass
 @app.route('/get_table_details')
 def get_table_details():
@@ -268,14 +273,49 @@ def get_table_details():
     print("表的内容：(table_name="+table_name+",database_name="+database_name+")")
     print(data_re)
     return jsonify({"code": 0, "msg": "", "count": count, "data": data_re})
-
+#获取快速数据分析数据
+@app.route("/get_table_clean_key")
+def get_table_clean_key():
+    # 获取表名与数据库名
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    #调用获取表KEY的函数
+    clean_key_index,clean_index,clean_values= dictionary.get_table_clean(table_name, database_name)
+    clean_key=[]
+    for i in clean_key_index:
+        clean_key.append(i)
+    # 返回JSON
+    print("返回的clean_key")
+    print(clean_key)
+    return jsonify({"data": clean_key, "len": len(clean_key)})
+    pass
+@app.route("/get_table_clean_data")
+def get_table_clean_data():
+    # 获取表名与数据库名
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    #调用获取表KEY的函数
+    clean_key,clean_index,clean_values= dictionary.get_table_clean(table_name, database_name)
+    # 返回JSON
+    # 转化为JSON格式
+    data_real = []  # 最后的形态{"key":value,......}
+    count = len(clean_values)
+    for i in range(count):
+        flag = {}
+        for j in range(len(clean_key)):
+            flag[clean_key[j]] = clean_values[i][j]  # table_data_flag==value,english_china==key
+        flag["type"]=clean_index[i]
+        data_real.append(flag)
+    print("数据快速分析内容：(table_name=" + table_name + ",database_name=" + database_name + ")")
+    print(data_real)
+    return jsonify({"code": 0, "msg": "", "count": count, "data": data_real})
+    pass
 #######数据查看部分
 
 
 
 
 ######数据字典部分
-
 #根据文件生成数据字典
 @app.route("/create_dictionary_file")
 def create_dictionary_file():
@@ -338,7 +378,6 @@ def delete_dictonary():
     key_english = request.values.get("key_english")
     flag=dictionary.delete_dictionary(table_name,database_name,key_english)
     return jsonify({"flag":flag})
-
 ######数据字典部分
 
 
@@ -346,7 +385,6 @@ def delete_dictonary():
 
 
 ######表与文件部分
-
 #表删除
 @app.route('/delete_table')
 def delete_table():
@@ -390,7 +428,6 @@ def delete_file():
         # 文件状态删除
         flag = fileroot.delete_file(file_name)
     return jsonify({"flag":flag})
-
 ######表与文件部分
 
 

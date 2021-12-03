@@ -51,15 +51,23 @@
                 <li class="layui-nav-item"><a href="/index">导入数据</a></li>
                 <li class="layui-nav-item" style="background: #007d65"><a href="/table_list">已创建表</a></li>
                 <li class="layui-nav-item"><a href="/file_list">已上传文件</a></li>
+                <li class="layui-nav-item"><a href="/data_clean">维度清洗</a></li>
             </ul>
         </div>
     </div>
 
-    <div class="layui-body">
+    <div class="layui-body" style="overflow:auto;">
     <!-- 内容主体区域 -->
         <div style="padding: 15px;">
             <table id="demo" lay-filter="test"></table>
         </div>
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+            <legend>数据快速分析</legend>
+        </fieldset>
+        <div style="padding: 15px;">
+            <table id="clean" lay-filter="test"></table>
+        </div>
+
         <form class="layui-form" action="">
             <button type="button" class="layui-btn" id="export">文件下载</button>
         </form>
@@ -103,20 +111,43 @@
     layui.use('table', function(){
         var table = layui.table
         data_key=[]
-         $.ajax({
+        data_key_clean=[]
+        //第一个ajax获取表的详细数据
+        $.ajax({
              type: "GET",
              url: "/get_table_details_key?table_name={{ table_name }}&database_name={{ database_name }}",
              dataType: "json",
              success: function(data){
                  for (i=0;i<data.len;i++){
-                     data_key[i]={field:data.data[i][0],title:data.data[i][1],width:120}
+                     data_key[i]={field:data.data[i][0],title:data.data[i][1]+"("+data.data[i][0]+")",width:120}
                  }
+                 // 设置key值
                  table.render({
-                     elem: '#demo'
-                     ,height: 540
+                     elem: '#demo'//以此来区分不同的表格
+                     ,height: 430
                      ,url: '/get_table_details?table_name={{ table_name }}&database_name={{ database_name }}' //数据接口
-                     ,page: true //开启分页
+                     ,page: false //开启分页
                      ,cols: [data_key]
+                 });
+             }
+         });
+        //第二个ajax获取快速分析的数值
+        $.ajax({
+             type: "GET",
+             url: "/get_table_clean_key?table_name={{ table_name }}&database_name={{ database_name }}",
+             dataType: "json",
+             success: function(data){
+                 data_key_clean[0]={field:"type",title:"",width:120}
+                 for (i=1;i<=data.len;i++){
+                     data_key_clean[i]={field:data.data[i-1],title:data.data[i-1],width:120}
+                 }
+                 // 设置key值
+                 table.render({
+                     elem: '#clean'//以此来区分不同的表格
+                     ,height: 450
+                     ,url: '/get_table_clean_data?table_name={{ table_name }}&database_name={{ database_name }}' //数据接口
+                     ,page: false //开启分页
+                     ,cols: [data_key_clean]
                  });
              }
          });

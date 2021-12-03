@@ -9,6 +9,8 @@ import numpy as np
 
 from flask import Flask, render_template, request, jsonify, send_from_directory
 
+from matplotlib import pyplot as plt
+
 import connectsql
 import dictionary
 import fileroot
@@ -168,7 +170,19 @@ def test1_pandas():#pandas基础
     t1.head(3)  # 显示头几行
     t1.tail(3)  # 显示末尾几行
     t1.info()  # 展示df的概览
-    t1.describe()  # 快速进行统计：count,mean,std,min
+    file_path = "test_data/tttt.txt"
+    df = pd.read_csv(file_path)
+    df_clean=pd.DataFrame(df[2:],columns=list(["test1","test2","test3","test4"]))
+    df_clean.apply(pd.to_numeric, errors='ignore')
+    for i in list(["test1","test2","test3","test4"]):
+        try:
+            df_clean[i] = df_clean[i].astype(float)
+        except:
+            print("数据类型不符合")
+    print(df_clean.describe())
+    file_path = "test_data/tttt1.txt"
+    df2 = pd.read_csv(file_path)
+    print(df2.describe())  # 快速进行统计：count,mean,std,min
     pass
 
 def test_pandas2():#pandas索引
@@ -198,7 +212,62 @@ def test_pandas2():#pandas索引
     t4.fillna(t4.mean())  # 填充均值
     pass
 
+
+def test_pandas():#pandas案例
+    file_path="test_data/IMDB-Movie-Data.csv"
+    df=pd.read_csv(file_path)
+    print(df.head(1))
+    print(df.info())
+    #rating runtime分布情况
+    #选择图形,直方图
+    #准备数据
+    runtime_data=df["Runtime (Minutes)"].values
+    max_runtime=runtime_data.max()
+    min_runtime=runtime_data.min()
+    # 计算组距
+    num_bin=(max_runtime-min_runtime)//5
+    #设置图形的大小
+    # plt.figure(figsize=(20,8),dpi=80)
+    # plt.hist(runtime_data,num_bin)
+    # plt.xticks(range(min_runtime,max_runtime+5,5))
+    # plt.show()
+
+
+    #获取电影平均分
+    print(df["Rating"].mean())
+    #获取导演人数
+    print(len(set(df["Director"].tolist())))#set函数创建一个无序不重复元素集
+    print(len(df["Director"].unique()))#unique函数创建不重复的列表
+    #获取演员的人数
+    temp_actors_list=df["Actors"].str.split(", ").tolist()
+    print(temp_actors_list)
+    actors_list=[i for j in temp_actors_list for i in j]
+    actors_num=len(set(actors_list))
+    print(actors_num)
+
+    #电影分类
+    #统计分类列表
+    temp_list=df["Genre"].str.split(",").tolist()
+    genre_list=list(set([i for j in temp_list for i in j] ))
+    #构造全为0的数组
+    zeros_df=pd.DataFrame(np.zeros((df.shape[0],len(genre_list))),columns=genre_list)
+    print(zeros_df)
+    #给每个顶电影出现的位置赋值为1
+    for i in range(df.shape[0]):
+        #zeros_df.loc[0,["Sci-fi","Mucical"]]=1
+        zeros_df.loc[i,temp_list[i]]=1
+
+    print(zeros_df.head(3))
+    #统计每个分类电影数量和
+    genre_count=zeros_df.sum(axis=0)
+    print(genre_count)
+    #排序
+    genre_count=genre_count.sort_values()
+    print(genre_count)
+    pass
+
 if __name__ == '__main__':
+    test1_pandas()
     pass
 
 
