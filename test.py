@@ -58,8 +58,8 @@ def test1():#numpy基础
     # 在形状上包含就可运算
 
 def test2():#numpy分片索引
-    uk_file_path="./test_data/GB_video_data_numbers.csv"
-    us_file_path="./test_data/US_video_data_numbers.csv"
+    uk_file_path= "import_test/GB_video_data_numbers.csv"
+    us_file_path= "import_test/US_video_data_numbers.csv"
     t1=np.loadtxt(us_file_path,delimiter=",",dtype="int",skiprows=0,unpack=False)#skiprows,跳过前n行 unpack转置
     print(t1)
     print("*"*100)
@@ -170,7 +170,7 @@ def test1_pandas():#pandas基础
     t1.head(3)  # 显示头几行
     t1.tail(3)  # 显示末尾几行
     t1.info()  # 展示df的概览
-    file_path = "test_data/tttt.txt"
+    file_path = "import_test/tttt.txt"
     df = pd.read_csv(file_path)
     df_clean=pd.DataFrame(df[2:],columns=list(["test1","test2","test3","test4"]))
     df_clean.apply(pd.to_numeric, errors='ignore')
@@ -180,7 +180,7 @@ def test1_pandas():#pandas基础
         except:
             print("数据类型不符合")
     print(df_clean.describe())
-    file_path = "test_data/tttt1.txt"
+    file_path = "import_test/tttt1.txt"
     df2 = pd.read_csv(file_path)
     print(df2.describe())  # 快速进行统计：count,mean,std,min
     pass
@@ -214,7 +214,7 @@ def test_pandas2():#pandas索引
 
 
 def test_pandas():#pandas案例
-    file_path="test_data/IMDB-Movie-Data.csv"
+    file_path= "import_test/IMDB-Movie-Data.csv"
     df=pd.read_csv(file_path)
     print(df.head(1))
     print(df.info())

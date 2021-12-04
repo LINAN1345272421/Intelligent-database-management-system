@@ -51,7 +51,7 @@ def query_mysql(sql,*args):
 
 #日期的清洗
 def trans():
-    data_1=pd.read_csv("word_data/result.txt")
+    data_1=pd.read_csv("import_word/result.txt")
     ip=data_1["ip"]
     time=data_1["data"]
     traffic=data_1["traffic"]
@@ -92,7 +92,7 @@ def trans():
     test = pd.DataFrame(columns=column, data=list)
     test[1:-1]
     print()
-    test.to_csv('word_data/test.csv')
+    test.to_csv('import_word/test.csv')
 #月份的转换
 def month(str):
     if(str=="Nov"):

@@ -11,6 +11,7 @@ import pymysql
 import requests
 import re
 
+import xlwt
 from bs4 import BeautifulSoup
 from flask import json
 import nltk
@@ -56,7 +57,7 @@ def read_example(path,china_row,english_row,unit_row,type_flag):
     flag=1
     conn, cursor = get_conn_mysql()
     #将excel转换为csv文件
-    data = pd.read_excel('excel_example/'+path, 'Sheet1')
+    data = pd.read_excel('import_excel/'+path, 'Sheet1')
     data.fillna('', inplace=True)
     print(data)
     csv_name = path.split(".")[0]
@@ -138,7 +139,7 @@ def read_example(path,china_row,english_row,unit_row,type_flag):
 def read_csv(path,china_row,english_row,unit_row,type_flag):
     conn, cursor=get_conn_mysql()
     flag=1
-    data=pd.read_csv("score_table/"+path)
+    data=pd.read_csv("import_csv/"+path)
     data.fillna('', inplace=True)
     #编写表创建语句(字段类型就设为string)
     #表名
@@ -215,15 +216,41 @@ def read_csv(path,china_row,english_row,unit_row,type_flag):
         print("写入错误")
     close_conn_mysql(cursor, conn)
     return flag
+#指定列导出为excel文件
+#先从数据库读出指定列，在转换为excel文件，返回文件名，在让用户下载
+def export_excel(getdata_str,table_name):
+    # 连接数据库，查询数据
+    conn,cur=get_conn_mysql()
+    #将最后的逗号去掉
+    getdata_str=getdata_str[0:-1]
+    sql = 'select '+getdata_str+' from %s' % table_name
+    cur.execute(sql)  # 返回受影响的行数
 
+    fields = [field[0] for field in cur.description]  # 获取所有字段名
+    all_data = cur.fetchall()  # 所有数据
 
+    # 写入excel
+    book = xlwt.Workbook()
+    sheet = book.add_sheet('sheet1')
+
+    for col, field in enumerate(fields):
+        sheet.write(0, col, field)
+
+    row = 1
+    for data in all_data:
+        for col, field in enumerate(data):
+            sheet.write(row, col, field)
+        row += 1
+    book.save("export_excel_select/%s.xls" % table_name)
+    print("文件已导出："+"export_excel_select/%s.xls" % table_name)
+    return "%s.xls" % table_name
 
 # 读取docx中的文本代码示例
 import docx
 #word读取测试
 def read_word_test():
     # 获取文档对象
-    file = docx.Document("word_data/word.docx")
+    file = docx.Document("import_word/word.docx")
     print("段落数:" + str(len(file.paragraphs)))  # 段落数为13，每个回车隔离一段
 
     # 输出每一段的内容
@@ -291,4 +318,5 @@ def read_excel(path):
 
 
 if __name__ == '__main__':
+    export_excel("test1,test2,", "us_video_data_numbers")
     pass

@@ -111,8 +111,8 @@ def import_data():
         print(china_row_flag,english_row_flag,unit_row_flag,type_flag)
         if(file_type=="csv" or file_type=="txt"):#1.保存文件2.写入文件状态表3.导入数据库4.修改状态
             # 保存文件到指定路径
-            the_file.save("score_table/" + the_file.filename)
-            file_size=os.path.getsize("score_table/"+the_file.filename)
+            the_file.save("import_csv/" + the_file.filename)
+            file_size=os.path.getsize("import_csv/"+the_file.filename)
             # 记录文件基本信息
             if(flag_came==0):
                 fileroot.file_root(file_name,file_time,file_type,""+hum_convert(file_size),user_id)
@@ -125,8 +125,8 @@ def import_data():
         #excel_example文件夹xlsx，xls
         elif(file_type=="xlsx" or file_type=="xls"):
             # 保存文件到指定路径
-            the_file.save("excel_example/" + the_file.filename)
-            file_size=os.path.getsize("excel_example/"+the_file.filename)
+            the_file.save("import_excel/" + the_file.filename)
+            file_size=os.path.getsize("import_excel/"+the_file.filename)
             # 记录文件基本信息
             if (flag_came == 0):
                 fileroot.file_root(file_name,file_time,file_type,""+hum_convert(file_size),user_id)#记录文件基本信息
@@ -139,16 +139,16 @@ def import_data():
         #word_data文件夹docx，doc
         elif(file_type=="docx" or file_type=="doc"):
             # 保存文件到指定路径
-            the_file.save("word_data/" + the_file.filename)
-            file_size=os.path.getsize("word_data/"+the_file.filename)
+            the_file.save("import_word/" + the_file.filename)
+            file_size=os.path.getsize("import_word/"+the_file.filename)
             # 记录文件基本信息
             fileroot.file_root(file_name,file_time,file_type,""+hum_convert(file_size),user_id)#记录文件基本信息
             fileroot.file_update_state(file_name,  "已上传")
             print("文件类型：" + file_type + "，文件大小：" +""+hum_convert(file_size)+ ",上传时间：" + file_time + ",文件名：" + file_name+",上传用户："+user_id)
         else:
             # 保存文件到指定路径
-            the_file.save("test_data/" + the_file.filename)
-            file_size=os.path.getsize("test_data/"+the_file.filename)
+            the_file.save("import_test/" + the_file.filename)
+            file_size=os.path.getsize("import_test/"+the_file.filename)
             # 记录文件基本信息
             fileroot.file_root(file_name,file_time,file_type,""+hum_convert(file_size),user_id)#记录文件基本信息
             fileroot.file_update_state(file_name, "已上传")
@@ -178,16 +178,36 @@ def export():
     print("文件下载：")
     if(file_data[2] == "csv" or file_data[2] == "txt"):
         print(file_data)
-        return send_from_directory(r"score_table", filename=file_data[0]+"."+file_data[2], as_attachment=True)
+        return send_from_directory(r"import_csv", filename=file_data[0]+"."+file_data[2], as_attachment=True)
     elif(file_data[2] == "xlsx" or file_data[2] == "xls"):
         print(file_data)
-        return send_from_directory(r"excel_example", filename=file_data[0]+"."+file_data[2], as_attachment=True)
+        return send_from_directory(r"import_excel", filename=file_data[0]+"."+file_data[2], as_attachment=True)
     elif(file_data[2] == "docx" or file_data[2] == "doc"):
         print(file_data)
-        return send_from_directory(r"word_data", filename=file_data[0] + "." + file_data[2], as_attachment=True)
+        return send_from_directory(r"import_word", filename=file_data[0] + "." + file_data[2], as_attachment=True)
     else:
         print(file_data)
-        return send_from_directory(r"test_data", filename=file_data[0] + "." + file_data[2], as_attachment=True)
+        return send_from_directory(r"import_test", filename=file_data[0] + "." + file_data[2], as_attachment=True)
+#文件自定义列导出
+@app.route('/export_select')
+def export_select():
+    flag=1;
+    #获取字符串
+    getdata_str = request.values.get("getData_str")
+    #获取表名
+    table_name=request.values.get("table_name")
+    #获取已经导出的excel文件名
+    try:
+        file_name=connectsql.export_excel(getdata_str,table_name)
+    except:
+        flag=0
+    print("导出文件名:"+file_name)
+    return jsonify({"flag":flag,"file_name":file_name})
+#自定义文件导出下载：
+@app.route("/export_select_download")
+def export_select_download():
+    file_name = request.values.get("table_name")+".xls"
+    return send_from_directory(r"export_excel_select", filename=file_name, as_attachment=True)
 ######文件导入导出
 
 
@@ -307,7 +327,6 @@ def get_table_clean_data():
         flag["type"]=clean_index[i]
         data_real.append(flag)
     print("数据快速分析内容：(table_name=" + table_name + ",database_name=" + database_name + ")")
-    print(data_real)
     return jsonify({"code": 0, "msg": "", "count": count, "data": data_real})
     pass
 #######数据查看部分
@@ -409,22 +428,22 @@ def delete_file():
     print("文件删除：")
     if (file_type == "csv" or file_type == "txt"):
         print(file_name+file_type)
-        os.remove("excel_example/"+file_name+"."+file_type)
+        os.remove("import_excel/"+file_name+"."+file_type)
         # 文件状态删除
         flag = fileroot.delete_file(file_name)
     elif (file_type == "xlsx" or file_type == "xls"):
         print(file_name+file_type)
-        os.remove("score_table/" + file_name+"."+file_type)
+        os.remove("import_csv/" + file_name+"."+file_type)
         # 文件状态删除
         flag = fileroot.delete_file(file_name)
     elif (file_type == "docx" or file_type == "doc"):
         print(file_name+file_type)
-        os.remove("word_data/" + file_name+"."+file_type)
+        os.remove("import_word/" + file_name+"."+file_type)
         # 文件状态删除
         flag = fileroot.delete_file(file_name)
     else:
         print(file_name+file_type)
-        os.remove("test_data/" + file_name+"."+file_type)
+        os.remove("import_test/" + file_name+"."+file_type)
         # 文件状态删除
         flag = fileroot.delete_file(file_name)
     return jsonify({"flag":flag})
