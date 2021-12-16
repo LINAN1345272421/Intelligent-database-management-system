@@ -58,8 +58,11 @@
 
     <div class="layui-body">
         <!-- 内容主体区域 -->
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>源数据表</h2>
+        </blockquote>
         <div style="padding: 15px;">
-            <table class="layui-table" id="idTest" lay-data="{width: 1300, height:690, url:'/get_table_list',where:{action:'findSendArticle'}, page:false, id:'idTest'}" lay-filter="demo">
+            <table class="layui-table" id="idTest" lay-data="{width: 1300, height:600, url:'/get_table_list',where:{action:'findSendArticle'}, page:false, id:'idTest'}" lay-filter="demo">
                 <thead>
                 <tr>
                     <th lay-data="{field:'table_name', width:240,  fixed: true}">表名</th>
@@ -74,6 +77,27 @@
                 <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
                 <a class="layui-btn layui-btn-xs" lay-event="dictionary">数据字典</a>
                 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>清洗数据表</h2>
+        </blockquote>
+        <div style="padding: 15px;">
+            <table class="layui-table" id="idTest_clean" lay-data="{width: 1300, height:600, url:'/get_table_list_clean',where:{action:'findSendArticle'}, page:false, id:'idTest_clean'}" lay-filter="demo_clean">
+                <thead>
+                <tr>
+                    <th lay-data="{field:'table_name', width:240,  fixed: true}">表名</th>
+                    <th lay-data="{field:'database_name', width:240}">数据库</th>
+                    <th lay-data="{field:'rows_num', width:180}">行数</th>
+                    <th lay-data="{field:'create_time', width:240}">创建时间</th>
+                    <th lay-data="{fixed: 'right', width:220, align:'center', toolbar: '#barDemo_clean'}"></th>
+                </tr>
+                </thead>
+            </table>
+            <script type="text/html" id="barDemo_clean">
+                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail_clean">查看</a>
+                <a class="layui-btn layui-btn-xs" lay-event="dictionary_clean">数据字典</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del_clean">删除</a>
             </script>
         </div>
     </div>
@@ -140,7 +164,33 @@
             // layer.alert('编辑行：<br>'+ JSON.stringify(data))
         }
     });
-
+    table.on('tool(demo_clean)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'detail_clean'){
+           window.location.href="/table_details" +
+                "?table_name="+data.table_name+"&database_name="+data.database_name;
+        } else if(obj.event === 'del_clean'){
+            layer.confirm('真的删除行么', function(index){
+                 $.ajax({
+                    type: "GET",
+                    url: "/delete_table",
+                    data: {table_name:data.table_name,database_name:data.database_name},
+                    dataType: "json",
+                    success: function(data){
+                        if(data.flag==1){
+                            alert("删除成功，请刷新页面")
+                        }else{
+                            alert("删除失败")
+                        }
+                    }
+                });
+            });
+        } else if(obj.event === 'dictionary_clean'){
+            window.location.href="/look_dictionary" +
+                "?table_name="+data.table_name+"&database_name="+data.database_name;
+            // layer.alert('编辑行：<br>'+ JSON.stringify(data))
+        }
+    });
 </script>
 </body>
 </html>

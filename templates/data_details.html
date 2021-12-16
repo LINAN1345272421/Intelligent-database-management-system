@@ -58,26 +58,28 @@
 
     <div class="layui-body" style="overflow:auto;">
     <!-- 内容主体区域 -->
-        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
-            <legend>{{ table_name }}</legend>
-        </fieldset>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>{{ table_name }}</h2>
+        </blockquote>
         <div style="padding: 15px;">
             <table id="demo" lay-filter="test"></table>
         </div>
-        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
-            <legend>数据快速分析</legend>
-        </fieldset>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>数据快速分析</h2>
+        </blockquote>
         <div style="padding: 15px;">
             <table id="clean" lay-filter="test"></table>
         </div>
-        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
-            <legend>文件导出</legend>
-        </fieldset>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>文件导出</h2>
+        </blockquote>
         <div id="export_select" class="demo-transfer"></div>
         <br><br>
         <form class="layui-form" action="">
             <button type="button" class="layui-btn" id="export" >开始导出</button>
         </form>
+        <br>
+        <br>
         <br>
     </div>
 
@@ -200,7 +202,7 @@
             $.ajax({
                 type: "GET",
                 url: "/export_select",
-                data:{getData_str:str,table_name:"{{table_name}}"},
+                data:{getData_str:str,table_name:"{{table_name}}",database_name:"{{database_name}}"},
                 dataType: "json",
                 success: function(data){
                     if(data.flag==1){

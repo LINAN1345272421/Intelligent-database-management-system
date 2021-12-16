@@ -173,7 +173,7 @@ def test1_pandas():#pandas基础
     file_path = "import_test/tttt.txt"
     df = pd.read_csv(file_path)
     df_clean=pd.DataFrame(df[2:],columns=list(["test1","test2","test3","test4"]))
-    df_clean.apply(pd.to_numeric, errors='ignore')
+    df_clean.apply(pd.to_numeric, errors='ignore')#数据类型转换，
     for i in list(["test1","test2","test3","test4"]):
         try:
             df_clean[i] = df_clean[i].astype(float)
@@ -222,15 +222,16 @@ def test_pandas():#pandas案例
     #选择图形,直方图
     #准备数据
     runtime_data=df["Runtime (Minutes)"].values
+    print(df["Runtime (Minutes)"])
     max_runtime=runtime_data.max()
     min_runtime=runtime_data.min()
     # 计算组距
     num_bin=(max_runtime-min_runtime)//5
     #设置图形的大小
-    # plt.figure(figsize=(20,8),dpi=80)
-    # plt.hist(runtime_data,num_bin)
-    # plt.xticks(range(min_runtime,max_runtime+5,5))
-    # plt.show()
+    plt.figure(figsize=(20,8),dpi=80)
+    plt.hist(runtime_data,num_bin)
+    plt.xticks(range(min_runtime,max_runtime+5,5))
+    plt.show()
 
 
     #获取电影平均分
@@ -266,8 +267,12 @@ def test_pandas():#pandas案例
     print(genre_count)
     pass
 
+
+def addFive(X):
+    return X+5
+
 if __name__ == '__main__':
-    test1_pandas()
+    test_pandas()
     pass
 
 

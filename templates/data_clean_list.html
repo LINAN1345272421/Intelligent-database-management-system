@@ -60,6 +60,25 @@
 
     <div class="layui-body">
         <!-- 内容主体区域 -->
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>可清洗表</h2>
+        </blockquote>
+        <div style="padding: 15px;">
+            <table class="layui-table" id="idTest" lay-data="{width: 1300, height:600, url:'/get_table_list',where:{action:'findSendArticle'}, page:false, id:'idTest'}" lay-filter="demo">
+                <thead>
+                <tr>
+                    <th lay-data="{field:'table_name', width:240,  fixed: true}">表名</th>
+                    <th lay-data="{field:'database_name', width:240}">数据库</th>
+                    <th lay-data="{field:'rows_num', width:180}">行数</th>
+                    <th lay-data="{field:'create_time', width:240}">创建时间</th>
+                    <th lay-data="{fixed: 'right', width:220, align:'center', toolbar: '#barDemo'}"></th>
+                </tr>
+                </thead>
+            </table>
+            <script type="text/html" id="barDemo">
+                <a class="layui-btn layui-btn-xs" lay-event="clean">开始清洗</a>
+            </script>
+        </div>
     </div>
 
     <div class="layui-footer">
@@ -73,7 +92,6 @@
 </script>
 <script>
 //JS
-    var table = layui.table;
     layui.use(['element', 'layer', 'util'], function(){
         var element = layui.element
         ,layer = layui.layer
@@ -99,6 +117,14 @@
             }
         });
 
+    });
+    var table = layui.table;
+    table.on('tool(demo)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'clean'){
+           window.location.href="/data_clean_do" +
+                "?table_name="+data.table_name+"&database_name="+data.database_name;
+        }
     });
 
 </script>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../static/CSS/layui/css/layui.css"   media="all">
+    <link rel="stylesheet" href="../static/CSS/prompt_box.css"   media="all">
+  <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">智能数据库系统</div>
+    <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+          <!-- 移动端显示 -->
+          <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
+            <i class="layui-icon layui-icon-spread-left"></i>
+          </li>
+
+          <li class="layui-nav-item layui-hide-xs"><a href="index">导入</a></li>
+          <li class="layui-nav-item layui-hide-xs"><a href="table_list">数据字典</a></li>
+          <li class="layui-nav-item layui-hide-xs"><a href="look_list">可视化</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                <a href="javascript:;">
+                  <img src="//tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203b03cweg.jpg" class="layui-nav-img">
+                  tester
+                </a>
+                <dl class="layui-nav-child">
+                  <dd><a href="">Your Profile</a></dd>
+                  <dd><a href="">Settings</a></dd>
+                  <dd><a href="">Sign out</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+                <a href="javascript:;">
+                  <i class="layui-icon layui-icon-more-vertical"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="test">
+                <li class="layui-nav-item"><a href="/index">导入数据</a></li>
+                <li class="layui-nav-item" ><a href="/table_list">已创建表</a></li>
+                <li class="layui-nav-item"><a href="/file_list">已上传文件</a></li>
+                <li class="layui-nav-item" style="background: #007d65"><a href="/data_clean">维度清洗</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>原始数据：{{ table_name }}</h2>
+        </blockquote>
+        <div style="padding: 15px;">
+            <table id="demo" lay-filter="test"></table>
+        </div>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>重复值（已去除）</h2>
+        </blockquote>
+        <div style="padding: 15px;">
+            <table id="same_clean" lay-filter="test"></table>
+        </div>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>缺省值</h2>
+        </blockquote>
+        <div style="padding: 15px;">
+            <table id="nan_clean" lay-filter="test"></table>
+        </div>
+        <button type="button" class="layui-btn" id="nan_look">查看缺省值</button>
+        <br>
+        <br>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>缺省值处理</h2>
+        </blockquote>
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+            <legend>缺省值补全</legend>
+        </fieldset>
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label">补全方式</label>
+                <div class="layui-input-block">
+                    <select name="interest" lay-filter="aihao" id="supply_type">
+                        <option value=""></option>
+                        <option value="median">中位数</option>
+                        <option value="mode" selected="">众数</option>
+                        <option value="mean">平均数</option>
+                    </select>
+                    <button type="button" class="layui-btn layui-btn-normal" id="supply_submit"  onclick="supply_submit">确定</button>
+                </div>
+            </div>
+        </form>
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+            <legend>缺省值去除</legend>
+        </fieldset>
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label">作用于</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="action_on" value="index" title="行" checked="">
+                    <input type="radio" name="action_on" value="columns" title="列">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">非空值最小数</label>
+                <div class="layui-input-block">
+                    <input type="text" id="min_num" lay-verify="title" autocomplete="off" placeholder="非空值小于此数目的行或列将被删除" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">方式</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="type_on" value="all" title="all" checked="">
+                    <input type="radio" name="type_on" value="any" title="any">
+                </div>
+                <button type="button" class="layui-btn layui-btn-normal" id="remove_submit" >确定</button>
+            </div>
+        </form>
+        <br>
+        <br>
+        <blockquote class="layui-elem-quote layui-text">
+            <h2>查看结果</h2>
+        </blockquote>
+        <button id="result_submit" type="button" class="layui-btn">查看结果并导出</button>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+    </div>
+    <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    寒蝉鸣泣之时
+    </div>
+</div>
+<script src="../static/CSS/layui/layui.js">
+</script>
+<script src="../static/js/jquery-1.7.2.min.js">
+</script>
+<script>
+//JS
+    data_key=[]//表的key值,表格形式
+    layui.use(['element', 'layer', 'util'], function(){
+        var element = layui.element
+        ,layer = layui.layer
+        ,util = layui.util
+        ,$ = layui.$;
+
+        //头部事件
+        util.event('lay-header-event', {
+        //左侧菜单事件
+            menuLeft: function(othis){
+                layer.msg('展开左侧菜单的操作', {icon: 0});
+            }
+            ,menuRight: function(){
+                layer.open({
+                    type: 1
+                    ,content: '<div style="padding: 15px;">处理右侧面板的操作</div>'
+                    ,area: ['260px', '100%']
+                    ,offset: 'rt' //右上角
+                    ,anim: 5
+                    ,shadeClose: true
+
+                });
+            }
+        });
+
+    });
+    layui.use('table', function(){
+        var table = layui.table
+        //第一个ajax获取表的详细数据以及重复值
+        $.ajax({
+             type: "GET",
+             url: "/get_table_details_key?table_name={{ table_name }}&database_name={{ database_name }}",
+             dataType: "json",
+             success: function(data){
+                 for (i=0;i<data.len;i++){
+                     data_key[i]={field:data.data[i][0],title:data.data[i][1]+"("+data.data[i][0]+")",width:120}
+                 }
+                 //重复值
+                 table.render({
+                     elem: '#same_clean'//以此来区分不同的表格
+                     ,height: 430
+                     ,url: '/data_clean_scame?table_name={{ table_name }}&database_name={{ database_name }}' //数据接口
+                     ,page: false //开启分页
+                     ,cols: [data_key]
+                 });
+                 // 原数据
+                 table.render({
+                     elem: '#demo'//以此来区分不同的表格
+                     ,height: 430
+                     ,url: '/get_table_details?table_name={{ table_name }}&database_name={{ database_name }}' //数据接口
+                     ,page: false //开启分页
+                     ,cols: [data_key]
+                 });
+                 //缺省值信息
+                table.render({
+                    elem: '#nan_clean'//以此来区分不同的表格
+                    ,url: '/data_clean_nan?table_name={{ table_name }}&database_name={{ database_name }}' //数据接口
+                    ,page: false //开启分页
+                    ,cols: [[{field:'keys',title:"属性值",width:120},
+                    {field:'num',title:"缺省值个数",width:120}]]
+                });
+             }
+         });
+        //获取缺省值信息
+    });
+    $('#nan_look').click(function(){
+        url="/data_clean_nan_look?table_name={{ table_name }}&database_name={{ database_name }}"
+        window.open(url)
+    })
+</script>
+<script>
+    $("#supply_submit").click(function() {
+        supply_type = $("#supply_type").find("option:selected").val()
+        $.ajax({
+            type: "GET",
+            url: "/data_clean_supply?supply_type=" + supply_type,
+            dataType: "json",
+            success: function (data) {
+                if (data.cog == 1) {
+                    alert("操作成功")
+                } else {
+                    alert("操作失败")
+                }
+            }
+        })
+    })
+    $("#remove_submit").click(function() {
+        action_on=$("input[name='action_on']:checked").val();
+        type_on=$("input[name='type_on']:checked").val();
+        min_num=$("#min_num").val()
+        $.ajax({
+            type: "GET",
+            url: "/data_clean_remove?action_on="+action_on+"&type_on="+type_on+"&min_num="+min_num,
+            dataType: "json",
+            success: function (data) {
+                if (data.cog == 1) {
+                    alert("操作成功")
+                } else {
+                    alert("操作失败")
+                }
+            }
+        })
+    })
+    $('#result_submit').click(function(){
+        url="/data_clean_result_look?table_name={{ table_name }}&database_name={{ database_name }}"
+        window.open(url)
+    })
+</script>
+</body>
+</html>

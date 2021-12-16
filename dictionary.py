@@ -17,7 +17,19 @@ from nltk.corpus import brown
 #数据库的连接与查询
 import fileroot
 
-
+def get_conn_mysql_name(database):
+    """
+    :return: 连接，游标192.168.1.102
+    """
+    # 创建连接
+    conn = pymysql.connect(host="127.0.0.1",
+                    user="root",
+                    password="123456",
+                    db=database,
+                    charset="utf8")
+    # 创建游标
+    cursor = conn.cursor()  # 执行完毕返回的结果集默认以元组显示
+    return conn, cursor
 def get_conn_mysql():
     """
     :return: 连接，游标192.168.1.102
@@ -48,13 +60,25 @@ def query_mysql(sql,*args):
     res=cursor.fetchall()
     close_conn_mysql(conn,cursor)
     return res
-def pymysql_conn():
+def query_mysql_name(sql,databaes):
+    """
+    封装通用查询
+    :param sql:
+    :param args:
+    :return: 返回查询结果以((),(),)形式
+    """
+    conn,cursor = get_conn_mysql_name(databaes);
+    cursor.execute(sql)
+    res=cursor.fetchall()
+    close_conn_mysql(conn,cursor)
+    return res
+def pymysql_conn(database):
     conn = pymysql.connect(
         host="127.0.0.1",  # 需要连接的数据库的ip
         port=3306,
         user="root",  # 数据库用户名
         password="123456",  # 数据库密码
-        database="bigwork_data"
+        database=database
     )
     cursor = conn.cursor()
     return conn, cursor
@@ -69,7 +93,7 @@ def get_dictionary(name_table,database_name):
     sql="select column_name,column_comment ,data_type,CHARACTER_MAXIMUM_LENGTH,COLUMN_DEFAULT " \
         "from information_schema.columns " \
         "where table_name='"+name_table+"' and table_schema='"+database_name+"'"
-    res = query_mysql(sql)
+    res = query_mysql_name(sql,database_name)
     return res
     pass
 #获取表的内容
@@ -80,7 +104,7 @@ def get_table_details(name_table,database_name):
     # where table_name='表名' and table_schema='bigwork_data'
     #英文名，中文名，字段类型，字段长度，缺省值，单位在数据的第一行
     sql="select * from "+name_table
-    res = query_mysql(sql)
+    res = query_mysql_name(sql,database_name)
     return res
     pass
 #获取表键值
@@ -88,12 +112,12 @@ def get_table_details_key(name_table,database_name):
     sql = "select column_name,column_comment " \
           "from information_schema.columns " \
           "where table_name='" + name_table + "' and table_schema='" + database_name + "'"
-    res = query_mysql(sql)
+    res = query_mysql_name(sql,database_name)
     return res
 #获取快速分析的key
 def get_table_clean(name_table,database_name):
     #pandas读取数据库
-    conn, cursor=pymysql_conn()
+    conn, cursor=pymysql_conn(database_name)
     qu_sql = "SELECT * FROM "+name_table
     df = pd.read_sql_query(qu_sql, conn)
     #获取key值（china，english）
@@ -123,7 +147,15 @@ def get_table_data():
     res = query_mysql(sql)
     return res
     pass
-
+#获取清洗表的信息
+def get_table_data_clean():
+    #表名，数据库，行数，创建实际
+    sql="SELECT TABLE_NAME,TABLE_SCHEMA,TABLE_ROWS,CREATE_TIME " \
+        "FROM information_schema.TABLES " \
+        "where  TABLE_SCHEMA='bigwork_update_data';"
+    res = query_mysql(sql)
+    return res
+    pass
 
 #修改数据字典
 #ALTER TABLE `bigwork_data`.`test_dictionary` CHANGE COLUMN `id` `id` varchar(255) NOT NULL DEFAULT '#' COMMENT '序号' ;
@@ -131,8 +163,8 @@ def get_table_data():
 def update_dictionary(table_name,database_name,key_china,key_type,key_english,key_long,key_null,key_unit,key_english_0):
     flag=1
     sql="ALTER TABLE `"+database_name+"`.`"+table_name+"` " \
-        "CHANGE COLUMN `"+key_english_0+"` `"+key_english+"` "+key_type+"("+key_long+")"+" NOT NULL DEFAULT '"+key_null+"' COMMENT '"+key_china+","+key_unit+"' ;"
-    conn, cursor = get_conn_mysql()
+        "CHANGE COLUMN `"+key_english_0+"` `"+key_english+"` "+key_type+"("+key_long+")"+" COMMENT '"+key_china+","+key_unit+"' ;"
+    conn, cursor = get_conn_mysql_name(database_name)
     try:
         cursor.execute(sql)
         conn.commit()
@@ -148,7 +180,7 @@ def update_dictionary(table_name,database_name,key_china,key_type,key_english,ke
 #ALTER TABLE `bigwork_data`.`test_dictionary` DROP COLUMN `name`;
 def delete_dictionary(table_name,database_name,clumn):
     flag=1
-    conn, cursor = get_conn_mysql()
+    conn, cursor = get_conn_mysql_name(database_name)
     sql="ALTER TABLE `"+database_name+"`.`"+table_name+"` DROP COLUMN `"+clumn+"`"
     try:
         cursor.execute(sql)
@@ -166,8 +198,8 @@ def delete_dictionary(table_name,database_name,clumn):
 def add_dictionary(table_name,database_name,key_china,key_type,key_english,key_long,key_null,key_unit):
     flag=1
     sql="ALTER TABLE `"+database_name+"`.`"+table_name+\
-        "` ADD COLUMN `"+key_english+"` "+key_type+"("+key_long+")"+" NOT NULL DEFAULT '"+key_null+"' COMMENT '"+key_china+","+key_unit+"'"
-    conn, cursor = get_conn_mysql()
+        "` ADD COLUMN `"+key_english+"` "+key_type+"("+key_long+")"+" COMMENT '"+key_china+","+key_unit+"'"
+    conn, cursor = get_conn_mysql_name(database_name)
     try:
         cursor.execute(sql)
         conn.commit()
@@ -182,9 +214,9 @@ def add_dictionary(table_name,database_name,key_china,key_type,key_english,key_l
 
 
 #表的删除
-def delete_table(table_name):
+def delete_table(table_name,database_name):
     flag = 1
-    conn, cursor = get_conn_mysql()
+    conn, cursor = get_conn_mysql_name(database_name)
     sql="DROP TABLE "+table_name
     try:
         cursor.execute(sql)
@@ -193,7 +225,7 @@ def delete_table(table_name):
         traceback.print_exc()
         flag = 0
         print("写入错误")
-    print("表的删除：")
+    print("表的删除："+database_name)
     print(sql)
     close_conn_mysql(cursor, conn)
     return flag

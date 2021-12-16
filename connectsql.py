@@ -33,6 +33,19 @@ def get_conn_mysql():
     # 创建游标
     cursor = conn.cursor()  # 执行完毕返回的结果集默认以元组显示
     return conn, cursor
+def get_conn_mysql_name(name):
+    """
+    :return: 连接，游标192.168.1.102
+    """
+    # 创建连接
+    conn = pymysql.connect(host="127.0.0.1",
+                    user="root",
+                    password="123456",
+                    db=name,
+                    charset="utf8")
+    # 创建游标
+    cursor = conn.cursor()  # 执行完毕返回的结果集默认以元组显示
+    return conn, cursor
 def close_conn_mysql(conn, cursor):
     if cursor:
         cursor.close()
@@ -97,7 +110,7 @@ def read_example(path,china_row,english_row,unit_row,type_flag):
     # 循环加入key值
     j=0
     for i in key_0:
-        sql = sql + i + " VARCHAR(45) NOT NULL DEFAULT '#' comment '"+key_china[j]+","+key_unit[j]+"',"
+        sql = sql + i + " TEXT  comment '"+key_china[j]+","+key_unit[j]+"',"
         j=j+1;
     creat_sql = sql[0:-1] + ") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8 COLLATE = utf8_bin;"
     print(creat_sql)
@@ -107,7 +120,6 @@ def read_example(path,china_row,english_row,unit_row,type_flag):
     values=[]
     for i in data.values.tolist()[2:]:
         values.append(i)
-    print(values)
     # 组装insert语句
     insert_sql = 'insert into {}({}) values({})'.format(table_name, key, s)
     print(insert_sql)
@@ -177,7 +189,7 @@ def read_csv(path,china_row,english_row,unit_row,type_flag):
     # 循环加入key值
     j = 0
     for i in key_0:
-        sql = sql + i + " VARCHAR(45) NOT NULL DEFAULT '#' comment '" + key_china[j]+","+key_unit[j]+ "',"
+        sql = sql + i + " TEXT  comment '" + key_china[j]+","+key_unit[j]+ "',"
         j = j + 1;
     creat_sql = sql[0:-1] + ") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8 COLLATE = utf8_bin;"
     print(creat_sql)
@@ -187,7 +199,6 @@ def read_csv(path,china_row,english_row,unit_row,type_flag):
     values = []
     for i in data.values.tolist()[2:]:
         values.append(i)
-    print(values)
     # 组装insert语句
     insert_sql = 'insert into {}({}) values({})'.format(table_name, key, s)
     print(insert_sql)
@@ -218,12 +229,13 @@ def read_csv(path,china_row,english_row,unit_row,type_flag):
     return flag
 #指定列导出为excel文件
 #先从数据库读出指定列，在转换为excel文件，返回文件名，在让用户下载
-def export_excel(getdata_str,table_name):
+def export_excel(getdata_str,table_name,database_name):
     # 连接数据库，查询数据
-    conn,cur=get_conn_mysql()
+    conn,cur=get_conn_mysql_name(database_name)
     #将最后的逗号去掉
     getdata_str=getdata_str[0:-1]
     sql = 'select '+getdata_str+' from %s' % table_name
+    print(sql)
     cur.execute(sql)  # 返回受影响的行数
 
     fields = [field[0] for field in cur.description]  # 获取所有字段名
@@ -243,6 +255,7 @@ def export_excel(getdata_str,table_name):
         row += 1
     book.save("export_excel_select/%s.xls" % table_name)
     print("文件已导出："+"export_excel_select/%s.xls" % table_name)
+    close_conn_mysql(conn,cur)
     return "%s.xls" % table_name
 
 # 读取docx中的文本代码示例

@@ -5,11 +5,21 @@ import traceback
 from flask import Flask, render_template, request, jsonify, send_from_directory, session
 
 import connectsql
+import dataclean
 import dictionary
 import fileroot
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(30)
+
+#全局变量
+china_row_0=0#中文名 行
+english_row_0=0#英文名 行
+unit_row_0=0#单位 行
+type_0=0#1追加，0覆盖
+data_clean=None#数据清洗pd类型
 
 #此部分为URL跳转配置
 @app.route('/index')
@@ -18,7 +28,7 @@ def hello_world_show():
     return render_template("index.html")
 @app.route('/table_list')
 def hello_world_show_2():
-    return render_template("table_list.html")
+    return render_template("list_table.html")
 @app.route('/look_dictionary')
 def hello_world_show_3():
     table_name=request.values.get("table_name")
@@ -30,26 +40,37 @@ def hello_world_show_4():
     database_name=request.values.get("database_name")
     english_china=[]
     english_china=dictionary.get_table_details_key(table_name,database_name)
-    return render_template("table_details.html",table_name=table_name,database_name=database_name)
+    return render_template("data_details.html", table_name=table_name, database_name=database_name)
 @app.route('/file_list')
 def hello_world_show_5():
-    return render_template("file_list.html")
+    return render_template("list_file.html")
 @app.route('/look_list')
 def hello_world_show_6():
-    return render_template("look_list.html")
+    return render_template("list_look.html")
 @app.route('/data_clean')
 def hello_world_show7():
-    return render_template("data_clean.html")
+    return render_template("data_clean_list.html")
+@app.route("/data_clean_do")
+def hello_world_show8():
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    return render_template("data_clean_do.html",table_name=table_name, database_name=database_name)
+@app.route("/data_clean_nan_look")
+def data_clean_nan_look():
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    return render_template("data_clean_nan_look.html", table_name=table_name, database_name=database_name)
+@app.route("/data_clean_result_look")
+def data_clean_result_look():
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    return render_template("data_clean_result_look.html", table_name=table_name, database_name=database_name)
 #此部分为URL跳转配置
 
 
 
 
 ######文件导入导出
-china_row_0=0#中文名 行
-english_row_0=0#英文名 行
-unit_row_0=0#单位 行
-type_0=0#1追加，0覆盖
 #格式设置
 @app.route("/set_rows")
 def set_rows():
@@ -196,10 +217,14 @@ def export_select():
     getdata_str = request.values.get("getData_str")
     #获取表名
     table_name=request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    file_name=""
     #获取已经导出的excel文件名
     try:
-        file_name=connectsql.export_excel(getdata_str,table_name)
-    except:
+        file_name=connectsql.export_excel(getdata_str,table_name,database_name)
+    except (Exception, BaseException) as e:
+        exstr = traceback.format_exc()
+        print(exstr)
         flag=0
     print("导出文件名:"+file_name)
     return jsonify({"flag":flag,"file_name":file_name})
@@ -223,7 +248,20 @@ def get_table_list():
         data_time_str=data_time.strftime("%Y-%m-%d %H:%M:%S")
         data_re.append({"table_name":table_name,"database_name":database_name,"rows_num":rows+1,"create_time":data_time_str})
     count= len(data_re)
-    print("已导入数据：")
+    print("已导入数据（原始表）：")
+    print(data_re)
+    return jsonify({"code": 0, "msg": "", "count": count,"data":data_re})
+#获取清洗后表
+@app.route('/get_table_list_clean')
+def get_table_list_clean():
+    data=[]
+    data=dictionary.get_table_data_clean()
+    data_re=[]
+    for table_name,database_name,rows,data_time in data:
+        data_time_str=data_time.strftime("%Y-%m-%d %H:%M:%S")
+        data_re.append({"table_name":table_name,"database_name":database_name,"rows_num":rows+1,"create_time":data_time_str})
+    count= len(data_re)
+    print("已导入数据(清洗表)：")
     print(data_re)
     return jsonify({"code": 0, "msg": "", "count": count,"data":data_re})
 #文件状态查询
@@ -291,7 +329,7 @@ def get_table_details():
             flag[english_china[i][0]] = table_data_flag[i]#table_data_flag==value,english_china==key
         data_re.append(flag)
     print("表的内容：(table_name="+table_name+",database_name="+database_name+")")
-    print(data_re)
+    print(data_re[0:20])
     return jsonify({"code": 0, "msg": "", "count": count, "data": data_re})
 #获取快速数据分析数据
 @app.route("/get_table_clean_key")
@@ -411,8 +449,9 @@ def delete_table():
     table_name = request.values.get("table_name")
     database_name = request.values.get("database_name")
     try:
-        flag=dictionary.delete_table(table_name)
-        fileroot.file_update_state(table_name,"已上传")
+        flag=dictionary.delete_table(table_name,database_name)
+        if(database_name=="bigwork_data"):
+            fileroot.file_update_state(table_name,"已上传")
     except:
         traceback.print_exc()
         flag=0
@@ -454,6 +493,124 @@ def delete_file():
 @app.route('/to_look')
 def tolook():
     return render_template("tolook.html")
+
+#数据清洗部分
+#重复值
+@app.route('/data_clean_scame')
+def data_clean_scame():
+    table_name = request.values.get("table_name")
+    database_name = request.values.get("database_name")
+    #data_came重复数据，data_remove_came去重后数据 都为pd类型
+    data_came, data_remove_came=dataclean.data_clean_came(table_name,database_name)
+    global  data_clean
+    data_clean=data_remove_came#去重后的数据保存，为以后处理缺省值
+    print("去重后数据(部分)")
+    print(data_clean.head())
+    num_0 = data_came.shape[0]#行数
+    num_1 = data_came.shape[1]#keys数
+    data_list = [];#json数组
+    for i in range(num_0):
+        json_data = {}
+        for j in range(num_1):
+            json_data[data_came.keys()[j]] = data_came.values[i][j]
+        data_list.append(json_data)
+    return jsonify({"code": 0, "msg": "", "count": num_0, "data": data_list})
+#缺省值
+@app.route('/data_clean_nan')
+def data_clean_nan():
+    num_0 = data_clean.shape[0]
+    num_1 = data_clean.shape[1]
+    data_nan=[]
+    json_data = {}
+    for i in range(num_1):
+        flag = 0
+        for j in range(num_0):
+            if (data_clean.values[j][i] != data_clean.values[j][i]):
+                flag = flag + 1
+        data_nan.append({"keys":data_clean.keys()[i],"num":flag})
+    return jsonify({"code": 0, "msg": "", "count": num_1, "data": data_nan})
+#查看缺省值
+@app.route('/get_data_clean_nan')
+def get_data_clean_nan():
+    num_0 = data_clean.shape[0]
+    num_1 = data_clean.shape[1]
+    data = []
+    flag=0
+    for i in range(num_0):
+        json_list = {}
+        for j in range(num_1):
+            if (data_clean.values[i][j] == ''):
+                for k in range(num_1):
+                    json_list[data_clean.keys()[k]] = data_clean.values[i][k]
+                data.append(json_list)
+                flag=flag+1
+                break
+    return jsonify({"code": 0, "msg": "", "count": flag, "data": data})
+#获取最终结果的key
+@app.route('/get_clean_result_key')
+def get_clean_result_key():
+    key= []
+    # 调用获取表KEY的函数
+    for i in range(len(data_clean.keys())):
+        key.append(data_clean.keys()[i])
+    # 返回JSON
+    print("clean_result:key")
+    print(key)
+    return jsonify({"data": key, "len": len(key)})
+    pass
+#查看最终结果,将结果保存到数据库的bigwork_update_data
+@app.route('/get_data_clean_result')
+def get_data_clean_result():
+    table_name = request.values.get("table_name")
+    table_name=table_name+"_clean"
+    num_0 = data_clean.shape[0]
+    num_1 = data_clean.shape[1]
+    data = []
+    flag=0
+    #存入数据库
+    code=dataclean.data_clean_save(data_clean,table_name,"bigwork_update_data")
+    #将数据转换为json
+    for i in range(num_0):
+        json_list = {}
+        for j in range(num_1):
+            json_list[data_clean.keys()[j]] = data_clean.values[i][j]
+        data.append(json_list)
+        flag=flag+1
+    return jsonify({"code": 0, "msg": code, "count": flag, "data": data})
+#缺省值补全
+@app.route('/data_clean_supply')
+def data_clean_supply():
+    supply_type = request.values.get("supply_type")
+    flag='1'
+    try:
+        global data_clean
+        data_clean =dataclean.data_clean_supply(data_clean,supply_type)  # 去重后的数据保存，为以后处理缺省值
+    except (Exception, BaseException) as e:
+        exstr = traceback.format_exc()
+        print( exstr)
+        flag='0'
+    print(supply_type+"flag："+flag)
+    print(data_clean)
+    return jsonify({"cog":flag})
+    pass
+#缺省值去除
+@app.route("/data_clean_remove")
+def data_clean_remove():
+    action_on = str(request.values.get("action_on"))
+    type_on = str(request.values.get("type_on"))
+    min_num = str(request.values.get("min_num"))
+    flag='1'
+    try:
+        global data_clean
+        data_clean=dataclean.data_clean_remove(data_clean,action_on,type_on,min_num)
+    except (Exception, BaseException) as e:
+        exstr = traceback.format_exc()
+        print(exstr)
+        flag='0'
+    print( "min_num:"+min_num+",type_on:"+type_on+",action_on:"+action_on+",flag："+flag)
+    return jsonify({"cog":flag})
+    pass
+#数据清洗部分
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5000,debug=True)
